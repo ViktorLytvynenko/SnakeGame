@@ -13,7 +13,7 @@ import java.util.Optional;
 public class YourSolver implements Solver<Board> {
     private final int width = 15;
     private final int height = 15;
-    private final int maxLength = 40;
+    private final int maxLength = 38;
 
     Direction doSolve(Board board) {
         Lee lee = new Lee(width, height);
