@@ -4,32 +4,56 @@ import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
+import com.google.common.collect.Iterables;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 public class YourSolver implements Solver<Board> {
+    private final int width = 15;
+    private final int height = 15;
+    private final int maxLength = 40;
 
     Direction doSolve(Board board) {
+        Lee lee = new Lee(width, height);
+
         List<Point> barriers = board.getBarriers();
-        List<Point> walls = board.getWalls();
         List<Point> snake = board.getSnake();
-//        Direction snakeDirection = board.getSnakeDirection();
-//        System.out.println("11111111111111111" + snakeDirection);
-//        System.out.println("22222222222222222" + board.getHead());
+        System.out.println("Snake size " + snake.size());
         Point apple = board.getApples().get(0);
         Point head = board.getHead();
-        System.out.println("123" + board.getStones());
-        System.out.println("2345" + board.getBarriers());
+        Optional<Point> stone = board.getStones().stream().findFirst();
+        System.out.println("Stone is on the " + stone.get());
 
-        for (Point barrier : board.getBarriers()) {
-//            if (apple.getX() < head.getX() && barrier.getX() != (head.getX() + 1)) return Direction.LEFT;
-//            else if (apple.getX() > head.getX() && barrier.getX() != (head.getX() - 1)) return Direction.RIGHT;
-//            else if (apple.getY() > head.getY() && barrier.getY() != (head.getY() - 1)) return Direction.UP;
-                            if (apple.getX() < head.getX()) return Direction.LEFT;
-            else if (apple.getX() > head.getX()) return Direction.RIGHT;
-            else if (apple.getY() > head.getY()) return Direction.UP;
+        boolean isBiggerThanMaxLength = stone.isPresent() && snake.size() > maxLength;
+
+        Optional<Iterable<Point>> trace = lee.trace(head, isBiggerThanMaxLength ? stone.get() : apple, new HashSet<>(barriers));
+        if (trace.isEmpty()) {
+            if (stone.get().getX() < head.getX()) return Direction.LEFT;
+            else if (stone.get().getX() > head.getX()) return Direction.RIGHT;
+            else if (stone.get().getY() > head.getY()) return Direction.UP;
             else return Direction.DOWN;
         }
+        Point currentPosition = Iterables.get(trace.get(), 0);
+        Point nextPosition = Iterables.get(trace.get(), 1);
+        System.out.println("curr pos" + currentPosition);
+        System.out.println("next pos" + nextPosition);
+        System.out.println("stone" + stone);
+        System.out.println("barriers" + board.getBarriers());
+
+        if (currentPosition.getX() == nextPosition.getX() && currentPosition.getY() < nextPosition.getY())
+            return Direction.UP;
+        if (currentPosition.getX() == nextPosition.getX() && currentPosition.getY() > nextPosition.getY())
+            return Direction.DOWN;
+        if (currentPosition.getX() < nextPosition.getX() && currentPosition.getY() == nextPosition.getY())
+            return Direction.RIGHT;
+        if (currentPosition.getX() > nextPosition.getX() && currentPosition.getY() == nextPosition.getY())
+            return Direction.LEFT;
+
+        System.out.println("Our trace" + trace.get());
+
+
         return null;
     }
 
@@ -46,5 +70,4 @@ public class YourSolver implements Solver<Board> {
                 new YourSolver(),
                 new Board());
     }
-
 }
